@@ -4,13 +4,16 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
+	"net/http"
 	"web-service-gin/model"
 )
 
 func GetRecord(c *gin.Context, db *gorm.DB) {
 	var rec []model.Company
+
+	user, _ := CurrentUser(c)
 	db.Find(&rec)
-	c.JSON(200, rec)
+	c.JSON(200, user.Companies)
 
 }
 
@@ -30,11 +33,16 @@ func GetRecordById(c *gin.Context, db *gorm.DB) {
 
 func AddRecord(c *gin.Context, db *gorm.DB) {
 	var data model.Company
-	if err := c.ShouldBindJSON(&data); err != nil {
+	userId, err := CurrentUser(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if err = c.ShouldBindJSON(&data); err != nil {
 		c.JSON(400, gin.H{"error": "Invalid JSON data"})
 		return
 	}
-
+	data.UserID = userId.ID
 	db.Create(&data)
 
 	c.JSON(200, data)
