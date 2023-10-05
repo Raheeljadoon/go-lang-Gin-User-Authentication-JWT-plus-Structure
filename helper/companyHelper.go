@@ -8,7 +8,7 @@ import (
 )
 
 func GetRecord(c *gin.Context, db *gorm.DB) {
-	var rec model.Company
+	var rec []model.Company
 	db.Find(&rec)
 	c.JSON(200, rec)
 
